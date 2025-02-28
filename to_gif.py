@@ -1,40 +1,43 @@
 import cv2
 import os
 from moviepy.editor import VideoFileClip
+import shutil
 
 def getgif(start_time, end_time, max_size_mb=20, filepath="output.avi", output='output.gif'):
-    try:
-        clip = VideoFileClip(filepath)
-        clip = clip.subclip(start_time, end_time)
-        # 초기 해상도 및 FPS 설정
-        width = 720  # 초기 너비
-        fps = min(clip.fps, 15)  # 기본 15fps로 설정
-        quality = "optimizeplus"  # GIF 최적화 옵션
+    # copy file
+    shutil.copyfile(filepath, "./copies/output.avi")
+    filepath = "./copies/output.avi"
+    clip = VideoFileClip(filepath)
+    clip = clip.subclip(start_time, end_time)
+    # 초기 해상도 및 FPS 설정
+    width = 720  # 초기 너비
+    fps = min(clip.fps, 15)  # 기본 15fps로 설정
+    quality = "optimizeplus"  # GIF 최적화 옵션
 
-        # 일단 1차 변환 시도
+    # 일단 1차 변환 시도
+    clip_resized = clip.resize(width=width).set_fps(fps)
+    clip_resized.write_gif(output, program="ffmpeg", opt=quality)
+
+    # 파일 크기 확인 및 자동 조정
+    while os.path.getsize(output) / (1024 * 1024) > max_size_mb:
+        width = int(width * 0.8)  # 해상도를 80%로 축소
+        fps = max(5, int(fps * 0.8))  # FPS도 감소 (최소 5)
+        
         clip_resized = clip.resize(width=width).set_fps(fps)
         clip_resized.write_gif(output, program="ffmpeg", opt=quality)
 
-        # 파일 크기 확인 및 자동 조정
-        while os.path.getsize(output) / (1024 * 1024) > max_size_mb:
-            width = int(width * 0.8)  # 해상도를 80%로 축소
-            fps = max(5, int(fps * 0.8))  # FPS도 감소 (최소 5)
-            
-            clip_resized = clip.resize(width=width).set_fps(fps)
-            clip_resized.write_gif(output, program="ffmpeg", opt=quality)
+        # 240px 이하로 내려가면 중단 (너무 작아지는 것 방지)
+        if width < 240:
+            print("해상도를 더 낮출 수 없습니다.")
+            break
 
-            # 240px 이하로 내려가면 중단 (너무 작아지는 것 방지)
-            if width < 240:
-                print("해상도를 더 낮출 수 없습니다.")
-                break
-
-        print(f"최종 GIF 파일 크기: {os.path.getsize(output) / (1024 * 1024):.2f}MB")
-        print(f"출력 파일: {output}")
-    except Exception as e:
-        pass
+    print(f"최종 GIF 파일 크기: {os.path.getsize(output) / (1024 * 1024):.2f}MB")
+    print(f"출력 파일: {output}")
+    # delete file
+    os.remove("./copies/output.avi")
 
 # 사용 예시
-# getgif(start_time=1, end_time=10, filepath="output.avi", output="output.gif")
+getgif(start_time=300, end_time=320, filepath="output.avi", output="./gifs/output.gif")
 
 # video = cv2.VideoCapture(filepath)
 
