@@ -6,6 +6,4 @@
 > ffmeg, opencv, numpy
 
 # TODO
-> 시간 지정해서 동영상 끊기 (to_gif.py), ui제작
-> feature - 현재기능 작동 안함으로 차라리 동영상 - gif 직통 라이브러리 사용해서 gif 생성.
-> [참고링크](https://noanomal.tistory.com/432)
+> ui제작
