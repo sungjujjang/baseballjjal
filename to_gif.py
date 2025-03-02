@@ -2,13 +2,27 @@ import cv2
 import os
 from moviepy.editor import VideoFileClip
 import shutil
+import time
 
 def getgif(start_time, end_time, max_size_mb=20, filepath="output.avi", output='output.gif'):
-    # copy file
-    shutil.copyfile(filepath, "./copies/output.avi")
-    filepath = "./copies/output.avi"
+    # MP4로 변환 후 파일 경로 설정
+    try:
+        if os.path.exists("./copies/output.mp4"):
+            os.remove("./copies/output.mp4")
+    except Exception as e:
+        print(e)
+    
+    # AVI를 MP4로 변환
+    mp4_filepath = "./copies/output.mp4"
+    os.system(f"ffmpeg -y -i {filepath} -q:v 2 -c:v libx264 -preset fast -c:a aac -b:a 128k {mp4_filepath}")
+    
+    filepath = mp4_filepath
     clip = VideoFileClip(filepath)
+    print("clip duration : ", clip.duration)
+    
+    # Clip에서 원하는 부분 자르기
     clip = clip.subclip(start_time, end_time)
+    
     # 초기 해상도 및 FPS 설정
     width = 720  # 초기 너비
     fps = min(clip.fps, 15)  # 기본 15fps로 설정
@@ -33,11 +47,16 @@ def getgif(start_time, end_time, max_size_mb=20, filepath="output.avi", output='
 
     print(f"최종 GIF 파일 크기: {os.path.getsize(output) / (1024 * 1024):.2f}MB")
     print(f"출력 파일: {output}")
-    # delete file
-    os.remove("./copies/output.avi")
+
+    # 임시 MP4 파일 삭제
+    try:
+        if os.path.exists(mp4_filepath):
+            os.remove(mp4_filepath)
+    except Exception as e:
+        print(e)
 
 # 사용 예시
-getgif(start_time=300, end_time=320, filepath="output.avi", output="./gifs/output.gif")
+# getgif(start_time=300, end_time=320, filepath="output.avi", output="./gifs/output.gif")
 
 # video = cv2.VideoCapture(filepath)
 
